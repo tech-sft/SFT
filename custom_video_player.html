@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Video Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .player-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .video-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 15px;
+        }
+
+        .video-info {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .video-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .video-description {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .playlist-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .playlist-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #4ecdc4;
+            text-align: center;
+        }
+
+        .video-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .video-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #4ecdc4;
+            transform: translateX(5px);
+        }
+
+        .video-item.active {
+            background: linear-gradient(45deg, #4ecdc4, #45b7d1);
+            color: #000;
+            font-weight: bold;
+        }
+
+        .video-thumbnail {
+            width: 60px;
+            height: 45px;
+            background: #333;
+            border-radius: 8px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #999;
+            flex-shrink: 0;
+        }
+
+        .video-details {
+            flex: 1;
+        }
+
+        .video-item-title {
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+            line-height: 1.2;
+        }
+
+        .video-item-id {
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .control-btn {
+            background: linear-gradient(45deg, #4ecdc4, #45b7d1);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .playlist-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .playlist-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .playlist-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #4ecdc4, #45b7d1);
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .player-container {
+                padding: 20px;
+            }
+            
+            .video-wrapper {
+                height: 300px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .control-btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Custom Video Player</h1>
+        
+        <div class="player-container">
+            <div class="video-info">
+                <div class="video-title" id="currentTitle">Select a video to start playing</div>
+                <div class="video-description" id="currentDescription">Choose from the playlist below</div>
+            </div>
+            
+            <div class="video-wrapper">
+                <iframe class="video-frame" id="videoFrame" 
+                        src="about:blank" 
+                        allowfullscreen>
+                </iframe>
+            </div>
+            
+            <div class="controls">
+                <button class="control-btn" id="prevBtn" onclick="previousVideo()">⏮️ Previous</button>
+                <button class="control-btn" id="shuffleBtn" onclick="shufflePlaylist()">🔀 Shuffle</button>
+                <button class="control-btn" id="nextBtn" onclick="nextVideo()">Next ⏭️</button>
+            </div>
+        </div>
+        
+        <div class="playlist-container">
+            <h2 class="playlist-title">📋 Video Playlist</h2>
+            <div id="playlist"></div>
+        </div>
+    </div>
+
+    <script>
+        const videos = [
+            { id: 'a7GgkClDIEE', title: 'Video 1' },
+            { id: 'Z7qHfNEaehs', title: 'Video 2' },
+            { id: 'O_a0B22LItA', title: 'Video 3' },
+            { id: 'RC8-xTb6wlA', title: 'Video 4' },
+            { id: 'Nhk6TQW-whs', title: 'Video 5' },
+            { id: 'qd-luL8oXVE', title: 'Video 6' },
+            { id: 'UFUd7YCQZMw', title: 'Video 7' },
+            { id: 'SgfChjIzrJ8', title: 'Video 8' },
+            { id: '4IBpVrFyoiM', title: 'Video 9' },
+            { id: 'yQ07ZH3CrbA', title: 'Video 10' },
+            { id: 'Yjvg1LEV-0U', title: 'Video 11' },
+            { id: 'pytxYhO-7oI', title: 'Video 12' },
+            { id: '75QaS8Goxrw', title: 'Video 13' },
+            { id: 'jHEEFS0Hweo', title: 'Video 14' },
+            { id: 'exsI3D8AlBU', title: 'Video 15' },
+            { id: 'sqWioMIEzHw', title: 'Video 16' },
+            { id: 'fL30omPEBLU', title: 'Video 17' },
+            { id: '8xQ3zcNIMaI', title: 'Video 18' },
+            { id: 'RWlqr98Fa08', title: 'Video 19' },
+            { id: 'PpVnsfJQr38', title: 'Video 20' },
+            { id: 'wt6RCoGAbbU', title: 'Video 21' },
+            { id: 'LuLsIHGtvgQ', title: 'Video 22' },
+            { id: 'XECG0g-23SI', title: 'Video 23' },
+            { id: 'RHamyBhFIpw', title: 'Video 24' },
+            { id: 'r1J_zrVDYZE', title: 'Video 25' }
+        ];
+
+        let currentVideoIndex = 0;
+        let isShuffled = false;
+        let shuffledIndices = [];
+
+        function initializePlaylist() {
+            const playlist = document.getElementById('playlist');
+            playlist.innerHTML = '';
+            
+            videos.forEach((video, index) => {
+                const videoItem = document.createElement('div');
+                videoItem.className = 'video-item';
+                videoItem.onclick = () => playVideo(index);
+                
+                videoItem.innerHTML = `
+                    <div class="video-thumbnail">📹</div>
+                    <div class="video-details">
+                        <div class="video-item-title">${video.title}</div>
+                        <div class="video-item-id">ID: ${video.id}</div>
+                    </div>
+                `;
+                
+                playlist.appendChild(videoItem);
+            });
+            
+            // Auto-play first video
+            playVideo(0);
+        }
+
+        function playVideo(index) {
+            currentVideoIndex = index;
+            const video = videos[index];
+            const videoFrame = document.getElementById('videoFrame');
+            const currentTitle = document.getElementById('currentTitle');
+            const currentDescription = document.getElementById('currentDescription');
+            
+            // Update video frame
+            videoFrame.src = `https://www.youtube.com/embed/${video.id}?autoplay=1&rel=0&modestbranding=1`;
+            
+            // Update video info
+            currentTitle.textContent = video.title;
+            currentDescription.textContent = `Now playing: ${video.id}`;
+            
+            // Update playlist highlighting
+            const videoItems = document.querySelectorAll('.video-item');
+            videoItems.forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+            
+            // Update button states
+            updateButtonStates();
+        }
+
+        function nextVideo() {
+            let nextIndex;
+            if (isShuffled) {
+                const currentShuffledIndex = shuffledIndices.indexOf(currentVideoIndex);
+                nextIndex = shuffledIndices[(currentShuffledIndex + 1) % shuffledIndices.length];
+            } else {
+                nextIndex = (currentVideoIndex + 1) % videos.length;
+            }
+            playVideo(nextIndex);
+        }
+
+        function previousVideo() {
+            let prevIndex;
+            if (isShuffled) {
+                const currentShuffledIndex = shuffledIndices.indexOf(currentVideoIndex);
+                prevIndex = shuffledIndices[(currentShuffledIndex - 1 + shuffledIndices.length) % shuffledIndices.length];
+            } else {
+                prevIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
+            }
+            playVideo(prevIndex);
+        }
+
+        function shufflePlaylist() {
+            isShuffled = !isShuffled;
+            const shuffleBtn = document.getElementById('shuffleBtn');
+            
+            if (isShuffled) {
+                // Create shuffled array
+                shuffledIndices = [...Array(videos.length).keys()];
+                for (let i = shuffledIndices.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffledIndices[i], shuffledIndices[j]] = [shuffledIndices[j], shuffledIndices[i]];
+                }
+                shuffleBtn.textContent = '🔀 Shuffled';
+                shuffleBtn.style.background = 'linear-gradient(45deg, #ff6b6b, #ffa500)';
+            } else {
+                shuffleBtn.textContent = '🔀 Shuffle';
+                shuffleBtn.style.background = 'linear-gradient(45deg, #4ecdc4, #45b7d1)';
+            }
+        }
+
+        function updateButtonStates() {
+            // Enable all buttons (since we have circular navigation)
+            document.getElementById('prevBtn').disabled = false;
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    previousVideo();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    nextVideo();
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    // Space bar could be used for play/pause if needed
+                    break;
+            }
+        });
+
+        // Initialize the player
+        initializePlaylist();
+    </script>
+</body>
+</html>
